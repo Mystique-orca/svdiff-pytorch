@@ -101,6 +101,63 @@ python inference.py \
   --num_inference_steps=25  \
   --num_images_per_prompt=2 
 ```
+## Inference API - Generate Image
+### API Endpoints
+Endpoint: ```/generate-image```
+
+Method: POST
+Description: Generates an image based on the provided prompt.
+Request Body:
+```
+{
+  "prompt": "string",
+  "num_inference_steps": integer
+}
+```
+prompt: The text prompt describing the desired image.
+
+num_inference_steps (optional): The number of inference steps to perform. Default is 25.
+
+Response Body:
+```
+{
+  "image": "string (base64-encoded image bytes)"
+}
+```
+### Features:
+
+1. FastAPI: The code utilizes the FastAPI framework, which provides a high-performance API implementation with automatic request/response parsing and validation.
+
+2. CORS Middleware: The script includes middleware to handle Cross-Origin Resource Sharing (CORS) by allowing requests from any origin (*).
+
+3. Request and Response Models: The script defines Pydantic models (GenerateImageRequest and GenerateImageResponse) to validate the request payload and response data structure.
+
+4. Exception Handling: An exception handler is defined to catch HTTPException and return an appropriate JSON response with error details.
+
+5. Asynchronous Image Generation: The generate_image method in the ImageGenerator class is an asynchronous function (async) that uses asyncio.to_thread to run the image generation process concurrently in a separate thread. This allows the API to handle multiple requests concurrently without blocking the main event loop.
+
+### Optimizations:
+
+1. Preloading Model: The ImageGenerator class initializes the pre-trained model and related components (unet and text_encoder) in its constructor. This allows the model to be loaded only once during the initialization phase instead of loading it for every image generation request, optimizing the performance.
+
+2. GPU Acceleration: The code leverages GPU acceleration by using the .to("cuda") method to move the model and associated tensors to the GPU for faster image generation.
+
+3. Error Handling: The generate_image method catches exceptions during image generation and raises an HTTPException with an appropriate error message and status code (HTTP_500_INTERNAL_SERVER_ERROR) to provide meaningful feedback to the API clients.
+
+4. Efficient Image Conversion: Assuming the generated image is in the PIL format, the code converts it to bytes using the tobytes() method. This conversion avoids unnecessary data duplication and ensures efficient transmission of the generated image as part of the response.
+
+5. Multistep Scheduler: The ImageGenerator class utilizes the DPMSolverMultistepScheduler for scheduling the diffusion process during image generation. This scheduler can optimize the performance and quality of the generated images by using multiple inference steps.
+
+### Docker
+#### Build
+```
+docker build -t image-generator .
+```
+#### Run
+```
+docker build -t image-generator .
+```
+The FastAPI application should now be running inside the Docker container. You can access it by opening a web browser and navigating to http://localhost:8000. If you're running Docker on a remote machine or using Docker Toolbox on Windows, replace localhost with the IP address of the Docker host.
 
 ## Single Image Editing
 ### Training
